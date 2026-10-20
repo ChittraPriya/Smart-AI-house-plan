@@ -1,0 +1,93 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Pillar 4.1: Default-deny catch-all)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User profile validation
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.email is string && data.email.size() <= 128 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+             (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    // House plan validation
+    function isValidHousePlan(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 120 &&
+             data.plotLength is number && data.plotLength > 0 && data.plotLength <= 2000 &&
+             data.plotBreadth is number && data.plotBreadth > 0 && data.plotBreadth <= 2000 &&
+             data.facingDirection is string && data.facingDirection.size() <= 30 &&
+             data.floors is number && data.floors >= 1 && data.floors <= 10 &&
+             data.bedrooms is number && data.bedrooms >= 0 && data.bedrooms <= 20 &&
+             data.bathrooms is number && data.bathrooms >= 0 && data.bathrooms <= 20 &&
+             (!('budgetRange' in data) || (data.budgetRange is string && data.budgetRange.size() <= 60)) &&
+             (!('kitchenType' in data) || (data.kitchenType is string && data.kitchenType.size() <= 60)) &&
+             (!('architecturalStyle' in data) || (data.architecturalStyle is string && data.architecturalStyle.size() <= 60)) &&
+             (!('totalAreaSqFt' in data) || (data.totalAreaSqFt is number)) &&
+             (!('estimatedCost' in data) || (data.estimatedCost is number)) &&
+             (!('layoutJson' in data) || (data.layoutJson is string && data.layoutJson.size() <= 50000)) &&
+             (!('recommendationsJson' in data) || (data.recommendationsJson is string && data.recommendationsJson.size() <= 10000)) &&
+             (!('isFavorite' in data) || (data.isFavorite is bool)) &&
+             (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+             (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    // Connection test document
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // User profiles collection
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming()) && incoming().userId == existing().userId;
+      allow delete: if isOwner(userId);
+    }
+
+    // House Plans collection
+    match /plans/{planId} {
+      allow get: if isSignedIn() && isValidId(planId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(planId) &&
+                       incoming().userId == request.auth.uid &&
+                       isValidHousePlan(incoming());
+      allow update: if isSignedIn() && isValidId(planId) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().id == existing().id &&
+                       isValidHousePlan(incoming());
+      allow delete: if isSignedIn() && isValidId(planId) && existing().userId == request.auth.uid;
+    }
+  }
+}

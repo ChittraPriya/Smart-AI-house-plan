@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "UserProfile",
+      "description": "Stored user profile for authenticated users",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The Firebase Auth UID of the user",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "The user email address",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 100
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "User avatar URL",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 50
+        }
+      },
+      "required": ["userId", "email"]
+    },
+    "housePlan": {
+      "title": "HousePlan",
+      "description": "Generated or saved smart house plan with 2D/3D parameters",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the house plan",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user UID",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Descriptive plan title",
+          "maxLength": 120
+        },
+        "plotLength": {
+          "type": "number",
+          "description": "Plot length in feet"
+        },
+        "plotBreadth": {
+          "type": "number",
+          "description": "Plot breadth in feet"
+        },
+        "facingDirection": {
+          "type": "string",
+          "description": "Facing direction (e.g. East, North, West, South)",
+          "maxLength": 30
+        },
+        "budgetRange": {
+          "type": "string",
+          "description": "Target budget range",
+          "maxLength": 60
+        },
+        "floors": {
+          "type": "number",
+          "description": "Number of floors (1, 2, 3)"
+        },
+        "bedrooms": {
+          "type": "number",
+          "description": "Number of bedrooms"
+        },
+        "bathrooms": {
+          "type": "number",
+          "description": "Number of bathrooms"
+        },
+        "kitchenType": {
+          "type": "string",
+          "description": "Style of kitchen",
+          "maxLength": 60
+        },
+        "architecturalStyle": {
+          "type": "string",
+          "description": "Architectural aesthetic style",
+          "maxLength": 60
+        },
+        "totalAreaSqFt": {
+          "type": "number",
+          "description": "Total built-up square footage"
+        },
+        "estimatedCost": {
+          "type": "number",
+          "description": "Estimated construction cost in local currency"
+        },
+        "layoutJson": {
+          "type": "string",
+          "description": "Serialized 2D floor rooms and dimensions",
+          "maxLength": 50000
+        },
+        "recommendationsJson": {
+          "type": "string",
+          "description": "Serialized AI recommendations for ventilation, lighting, and vastu",
+          "maxLength": 10000
+        },
+        "isFavorite": {
+          "type": "boolean",
+          "description": "Whether plan is pinned to favorites"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "userId", "title", "plotLength", "plotBreadth", "facingDirection", "floors", "bedrooms", "bathrooms"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "Collection of user profile records indexed by auth UID"
+    },
+    "/plans/{planId}": {
+      "schema": "housePlan",
+      "description": "User generated house plans and project versions"
+    }
+  }
+}

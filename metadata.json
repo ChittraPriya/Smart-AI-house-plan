@@ -1,0 +1,6 @@
+{
+  "name": "HomeAI",
+  "description": "AI-Powered Smart House Plan Generator with 2D floor plans, interactive 3D visualizations, high-thinking architectural analysis, and cinematic Veo walkthroughs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
